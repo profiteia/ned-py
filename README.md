@@ -18,9 +18,7 @@ Python plugin to query the API of the Nationaal Energie Dashboard.
 ## Installation
 
 ```
-git clone https://github.com/profiteia/ned-py
-cd ned-py
-pip install . 
+pip install ned-py
 ```
 
 test functionality by:
