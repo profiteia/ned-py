@@ -32,15 +32,17 @@ pytest
 ## Functions
 
 ```
-authorisations()
 users()
+authorisations()
+
+get_forecast()
 get_consumption()
 get_production_provinces()
 get_production_offshore()
 get_production_netherlands()
 ```
 
-The API lacks clear documentation. Not all datapoints are available and forecast and backcast are not yet implemented. Checkout ned/helper.py for `is_valid_request` to see which requests are valid. 
+The API lacks clear documentation. Not all datapoints are available and backcast is not yet implemented. Checkout ned/helper.py for `is_valid_request` to see which requests are valid. 
 This package will be updated when more information becomes available.
 
 ## Usage

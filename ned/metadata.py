@@ -2,7 +2,7 @@ from bidict import bidict
 
 NED_ACTIVITIES = bidict({"Providing": 1, "Consuming": 2})
 
-NED_CLASSIFICATIONS = bidict({"Backcast": 1, "Current": 2, "Forecast": 3})
+NED_CLASSIFICATIONS = bidict({"Forecast": 1, "Current": 2, "Backcast": 3})
 
 NED_GRANULARITIES = bidict(
     {"10 minutes": 3, "15 minutes": 4, "Hour": 5, "Day": 6, "Month": 7, "Year": 8}

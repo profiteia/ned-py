@@ -21,11 +21,20 @@ nedapi.authorisations()  # Get authorisations
 nedapi.as_dataframe = True
 nedapi.pretty_print = False
 nedapi.force_invalid_request = False
-nedapi.log_level = "DEBUG"
+nedapi.log_level = "INFO"
 nedapi.sleep_time = 5
 
-df = nedapi.get_production_offshore(
+df = nedapi.get_production_netherlands(
     granularity="15 minutes",
     start_date=datetime.datetime(2021, 1, 1),
     end_date=datetime.datetime(2021, 1, 30),
+)
+
+print(df)
+
+nedapi.as_dataframe = False
+nedapi.pretty_print = False
+nedapi.force_invalid_request = False
+result = nedapi.get_forecast(
+    "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
 )

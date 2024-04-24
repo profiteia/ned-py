@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def sleep_before_test():
-    # Sleep for 5 seconds before each test
+    # Sleep before each test
     time.sleep(5)
 
 
@@ -28,6 +28,10 @@ def test_api_key():
 
 
 nedapi = ned.NedAPI(get_api_key())
+nedapi.log_level = "DEBUG"
+nedapi.sleep_time = 5
+nedapi.pretty_print = False
+nedapi.force_invalid_request = False
 
 
 def test_metadata_types():
@@ -64,40 +68,35 @@ def test_metadata_types():
 
 def test_authorisations():
     nedapi.as_dataframe = False
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.authorisations()
     assert type(result) == list and len(result) > 0
 
 
 def test_authorisations_df():
     nedapi.as_dataframe = True
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.authorisations()
     assert type(result) == pd.DataFrame and not result.empty
 
 
 def test_users():
     nedapi.as_dataframe = False
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.users()
     assert type(result) == list and len(result) > 0
 
 
 def test_users_df():
     nedapi.as_dataframe = True
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.users()
     assert type(result) == pd.DataFrame and not result.empty
 
 
 def test_production_netherlands():
     nedapi.as_dataframe = False
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_production_netherlands(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
@@ -106,8 +105,7 @@ def test_production_netherlands():
 
 def test_production_netherlands_df():
     nedapi.as_dataframe = True
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_production_netherlands(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
@@ -116,8 +114,7 @@ def test_production_netherlands_df():
 
 def test_production_offshore():
     nedapi.as_dataframe = False
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_production_offshore(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
@@ -126,8 +123,7 @@ def test_production_offshore():
 
 def test_production_offshore_df():
     nedapi.as_dataframe = True
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_production_offshore(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
@@ -136,8 +132,7 @@ def test_production_offshore_df():
 
 def test_consumption():
     nedapi.as_dataframe = False
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_consumption(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
@@ -146,9 +141,27 @@ def test_consumption():
 
 def test_consumption_df():
     nedapi.as_dataframe = True
-    nedapi.pretty_print = False
-    nedapi.force_invalid_request = False
+
     result = nedapi.get_consumption(
+        "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
+    )
+    assert type(result) == pd.DataFrame and not result.empty
+
+
+def test_forecast():
+    nedapi.as_dataframe = False
+
+    nedapi.sleep_time = 5
+    result = nedapi.get_forecast(
+        "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
+    )
+    assert type(result) == list and len(result) > 0
+
+
+def test_forecast_df():
+    nedapi.as_dataframe = True
+
+    result = nedapi.get_forecast(
         "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
     )
     assert type(result) == pd.DataFrame and not result.empty

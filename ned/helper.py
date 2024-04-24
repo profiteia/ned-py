@@ -21,15 +21,22 @@ VALID_GAS_CONSUMPTION_TYPES: List = [
     NED_TYPES["AllConsumingGas"],
 ]
 
+VALID_FORECAST_TYPES: List = [
+    NED_TYPES["Wind"],
+    NED_TYPES["Solar"],
+    NED_TYPES["WindOffshore"],
+    NED_TYPES["WindOffshoreC"],
+]
+
 INVALID_10_MINUTES_TYPES: List = [
-    "FossilGasPower",
-    "FossilHardCoal",
-    "Nuclear",
-    "WastePower",
-    "WindOffshoreB",
-    "BiomassPower",
-    "OtherPower",
-    "ElectricityMix",
+    NED_TYPES["FossilGasPower"],
+    NED_TYPES["FossilHardCoal"],
+    NED_TYPES["Nuclear"],
+    NED_TYPES["WastePower"],
+    NED_TYPES["WindOffshoreB"],
+    NED_TYPES["BiomassPower"],
+    NED_TYPES["OtherPower"],
+    NED_TYPES["ElectricityMix"],
 ]
 
 
@@ -69,6 +76,14 @@ def is_valid_request(
 ) -> bool:
 
     if ned_activity == NED_ACTIVITIES["Consuming"]:
+        # Forecast is not (yet?) available for Consuming
+        if ned_classification == NED_CLASSIFICATIONS["Forecast"]:
+            return False
+
+        # Backcast is not (yet?) available for Consuming
+        if ned_classification == NED_CLASSIFICATIONS["Backcast"]:
+            return False
+
         # Only gas consumption for Nederland is available
         return (
             ned_point == NED_POINTS["Nederland"]
@@ -76,8 +91,41 @@ def is_valid_request(
         )
 
     if ned_activity == NED_ACTIVITIES["Providing"]:
-        # Forecast is not (yet) available
+        # Only consumption is available for VALID_GAS_CONSUMPTION_TYPES
+        if ned_type in VALID_GAS_CONSUMPTION_TYPES:
+            return False
+
+        # Forecast is available for specific types and points
         if ned_classification == NED_CLASSIFICATIONS["Forecast"]:
+            if ned_type in VALID_FORECAST_TYPES:
+                if ned_granularity == NED_GRANULARITIES["Year"]:
+                    # Not available for a whole year
+                    return False
+
+                if (
+                    ned_type == NED_TYPES["WindOffshoreC"]
+                    and ned_point == NED_POINTS["Nederland"]
+                ):
+                    # WindOffshoreC only available for the Netherlands
+                    return True
+                elif ned_type == NED_TYPES["WindOffshore"]:
+                    # WindOffShore only available for NED_POINTS_OFFSHORE and the Netherlands
+                    if (
+                        ned_point in NED_POINTS_OFFSHORE.values()
+                        or ned_point == NED_POINTS["Nederland"]
+                    ):
+                        return True
+                elif (
+                    ned_point == NED_POINTS["Nederland"]
+                    or ned_point in NED_POINTS_PROVINCES.values()
+                ):
+                    # All VALID_FORECAST_TYPES are available for the Netherlands or the provinces
+                    return True
+
+            return False
+
+        # Backcast is not yet available
+        if ned_classification == NED_CLASSIFICATIONS["Backcast"]:
             return False
 
         # Not all types are available for ten minutes granularity
@@ -89,9 +137,6 @@ def is_valid_request(
 
         # Otherwise all data is available for the Netherlands
         if ned_point == NED_POINTS["Nederland"]:
-            # NED_TYPE All is not suppoted
-            if ned_type == NED_TYPES["All"]:
-                return False
             return True
 
         # Wind and solar types are only available for provinces

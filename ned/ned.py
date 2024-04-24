@@ -1,5 +1,7 @@
+from requests.exceptions import ChunkedEncodingError
 from typing import List, Union, Optional, Dict, Generator
 from datetime import datetime, timedelta
+from simplejson.errors import JSONDecodeError
 import logging
 import requests
 import pandas as pd
@@ -129,16 +131,24 @@ class NedAPI:
 
         headers = {"X-AUTH-TOKEN": self._api_key, "accept": "application/ld+json"}
 
-        response = requests.get(
-            f"{self.API_URL}/{endpoint}", headers=headers, params=params
-        )
+        try:
+            response = requests.get(
+                f"{self.API_URL}/{endpoint}", headers=headers, params=params
+            )
+        except ChunkedEncodingError as ex:
+            # Could not decode the chunked encoding, try again
+            return self._do_api_request(endpoint, params)
 
         self.logger.debug(json.dumps(params, indent=4))
 
-        if "hydra:member" in response.json():
-            response = response.json()["hydra:member"]
-        else:
-            response = response.json()
+        try:
+            if "hydra:member" in response.json():
+                response = response.json()["hydra:member"]
+            else:
+                response = response.json()
+        except JSONDecodeError:
+            self.logger.error(f"Error decoding JSON response: {response.text}")
+            return []
 
         # if response is not a list, check for errors
         if not isinstance(response, list) and "hydra:description" in response:
@@ -267,20 +277,22 @@ class NedAPI:
             for point in points:
                 # Check if is valid request
                 for type in types:
-                    if (
-                        not is_valid_request(
-                            activity, classification, granularity, point, type
-                        )
-                        and not self._force_invalid_request
+                    if not is_valid_request(
+                        activity, classification, granularity, point, type
                     ):
+                        if not self._force_invalid_request:
+                            self.logger.debug(
+                                f"Not forcing invalid request for {NED_POINTS.inverse[point]} - {NED_TYPES.inverse[type]}."
+                            )
+                            continue
+                        else:
+                            self.logger.debug(
+                                f"Forcing invalid request for {NED_POINTS.inverse[point]} - {NED_TYPES.inverse[type]}."
+                            )
+                    else:
                         self.logger.debug(
-                            f"Not forcing invalid request for {NED_POINTS.inverse[point]} - {NED_TYPES.inverse[type]}."
+                            f"Valid request for {NED_POINTS.inverse[point]} - {NED_TYPES.inverse[type]}."
                         )
-                        continue
-
-                    self.logger.debug(
-                        f"Valid request for {NED_POINTS.inverse[point]} - {NED_TYPES.inverse[type]}."
-                    )
 
                     params = {
                         "itemsPerPage": self.MAX_ITEMS_PER_PAGE,
@@ -325,15 +337,15 @@ class NedAPI:
             )
             time.sleep(self._sleep_time)
 
-    def get_forecast(self):
+    def get_backcast(self):
         """
-        Placeholder function for getting forecast data. Currently not implemented.
+        Placeholder function for getting backcast data. Currently not implemented.
 
         Raises:
         NotImplementedError: Always raises this exception since the function is not yet implemented.
         """
 
-        raise NotImplementedError("Forecast is not yet implemented.")
+        raise NotImplementedError("Backcast is not yet implemented.")
 
     def get_request(
         self,
@@ -403,6 +415,50 @@ class NedAPI:
             granularity,
             "Current",
             "Consuming",
+            start_date,
+            end_date,
+            granularitytimezone,
+            types,
+            points,
+        )
+
+    def get_forecast(
+        self,
+        granularity: str,
+        start_date: datetime,
+        end_date: Optional[datetime] = None,
+        granularitytimezone: str = "CET (Central European Time)",
+        types: Optional[List[str]] = ["Solar", "Wind", "WindOffshore", "WindOffshoreC"],
+        points: Optional[List[str]] = [
+            "Nederland",
+            "Groningen",
+            "Friesland",
+            "Drenthe",
+            "Overijssel",
+            "Flevoland",
+            "Gelderland",
+            "Utrecht",
+            "Noord-Holland",
+            "Zuid-Holland",
+            "Zeeland",
+            "Noord-Brabant",
+            "Limburg",
+            "Offshore",
+            "Windpark Luchterduinen",
+            "Windpark Princes Amalia",
+            "Windpark Egmond aan Zee",
+            "Windpark Gemini",
+            "Windpark Borselle I&II",
+            "Windpark Borselle III&IV",
+            "Windpark Hollandse Kust Zuid",
+            "Windpark Hollandse Kust Noord",
+        ],
+    ) -> Union[pd.DataFrame, List[dict]]:
+
+        return self.get_request(
+            granularity,
+            "Forecast",
+            "Providing",
             start_date,
             end_date,
             granularitytimezone,

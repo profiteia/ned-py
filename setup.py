@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ned-py",
-    version="0.2",
+    version="0.3",
     packages=find_packages(),
     description="Python wrapper for Nationaal Energie Dashboard API.",
     long_description="Receive and parse data from the Nationaal Energie Dashboard (ned.nl).",
