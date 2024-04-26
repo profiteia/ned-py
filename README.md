@@ -37,6 +37,7 @@ authorisations()
 
 get_forecast()
 get_consumption()
+get_production()
 get_production_provinces()
 get_production_offshore()
 get_production_netherlands()

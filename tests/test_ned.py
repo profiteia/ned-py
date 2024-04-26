@@ -94,6 +94,24 @@ def test_users_df():
     assert type(result) == pd.DataFrame and not result.empty
 
 
+def test_production():
+    nedapi.as_dataframe = False
+
+    result = nedapi.get_production(
+        "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
+    )
+    assert type(result) == list and len(result) > 0
+
+
+def test_production_df():
+    nedapi.as_dataframe = True
+
+    result = nedapi.get_production(
+        "15 minutes", pd.Timestamp(2024, 1, 1), pd.Timestamp(2024, 1, 2)
+    )
+    assert type(result) == pd.DataFrame and not result.empty
+
+
 def test_production_netherlands():
     nedapi.as_dataframe = False
 
