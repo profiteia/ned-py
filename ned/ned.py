@@ -148,6 +148,7 @@ class NedAPI:
                 response = response.json()
         except JSONDecodeError:
             self.logger.error(f"Error decoding JSON response: {response.text}")
+            self.logger.info(f"For request: ", json.dumps(params, indent=4))
             return []
 
         # if response is not a list, check for errors
@@ -458,6 +459,28 @@ class NedAPI:
         return self.get_request(
             granularity,
             "Forecast",
+            "Providing",
+            start_date,
+            end_date,
+            granularitytimezone,
+            types,
+            points,
+        )
+
+    # Generic function to get the production of all types and points
+    def get_production(
+        self,
+        granularity: str,
+        start_date: datetime,
+        end_date: Optional[datetime] = None,
+        granularitytimezone: str = "CET (Central European Time)",
+        types: Optional[List[str]] = list(NED_TYPES.keys()),
+        points: Optional[List[str]] = list(NED_POINTS.keys()),
+    ) -> Union[pd.DataFrame, List[dict]]:
+
+        return self.get_request(
+            granularity,
+            "Current",
             "Providing",
             start_date,
             end_date,
